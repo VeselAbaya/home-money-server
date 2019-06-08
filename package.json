@@ -1,0 +1,35 @@
+{
+  "name": "mongodb-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server/server.js",
+  "scripts": {
+    "test": "export NODE_ENV=test || SET \"NODE_ENV=test\" && mocha server/**/*.test.js",
+    "test-watch": "nodemon --exec 'npm test'",
+    "start": "node server/server.js"
+  },
+  "engines": {
+    "node": "9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "node.js"
+  },
+  "author": "Antay Juskovets",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3",
+    "jsonwebtoken": "^8.3.0",
+    "lodash": "^4.17.11",
+    "mongoose": "^5.3.2",
+    "npm": "^6.4.1",
+    "validator": "^10.8.0"
+  },
+  "devDependencies": {
+    "expect": "^23.6.0",
+    "mocha": "^5.2.0",
+    "supertest": "^3.3.0"
+  }
+}
