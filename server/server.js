@@ -3,6 +3,7 @@ require('./config/config');
 const _ = require('lodash');
 const express = require('express');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 
 const mongoose = require('./db/mongoose');
 const ObjectId = mongoose.Types.ObjectId;
@@ -16,6 +17,7 @@ const port = process.env.PORT;
 
 app.use(bodyParser.json({extended: true}));
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cors());
 
 app.get('/', (req, res) => {
   res.send('Welcome to my Todo API')
