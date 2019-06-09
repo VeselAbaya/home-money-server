@@ -17,6 +17,7 @@ const port = process.env.PORT;
 
 app.use(bodyParser.json({extended: true}));
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cors());
 
 app.get('/', (req, res) => {
   res.send('Welcome to my Todo API')
@@ -102,7 +103,7 @@ app.get('/', (req, res) => {
 //   })
 // });
 
-app.post('/users', cors(), (req, res) => {
+app.post('/users', (req, res) => {
   const body = _.pick(req.body, ['email', 'password', 'name']);
   const user = new User(body);
 
