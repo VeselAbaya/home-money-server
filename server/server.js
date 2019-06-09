@@ -17,7 +17,6 @@ const port = process.env.PORT;
 
 app.use(bodyParser.json({extended: true}));
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cors());
 
 app.get('/', (req, res) => {
   res.send('Welcome to my Todo API')
@@ -103,13 +102,16 @@ app.get('/', (req, res) => {
 //   })
 // });
 
-app.post('/users', (req, res) => {
+app.post('/users', cors(),(req, res) => {
   const body = _.pick(req.body, ['email', 'password', 'name']);
   const user = new User(body);
 
   user.save().then(() => user.generateAuthToken())
     .then(token => {
-      res.header('x-goog-authuser', token).send(user);
+      res.header({
+        'Access-Control-Expose-Headers': 'X-Auth',
+        'X-Auth': token
+      }).send(user)
     }).catch(err => {
       res.status(400).send({err})
     })
@@ -119,13 +121,13 @@ app.get('/users/me', authenticate, (req, res) => {
   res.send(req.user)
 });
 
-app.post('/users/login', (req, res) => {
+app.post('/users/login', cors(),(req, res) => {
   const {email, password} = _.pick(req.body, ['email', 'password']);
 
   User.findByCredentials(email, password).then(user => {
     user.generateAuthToken().then(token => {
       res.header({
-        'Access-Control-Allow-Headers': 'X-Auth',
+        'Access-Control-Expose-Headers': 'X-Auth',
         'X-Auth': token
       }).send(user)
     })
