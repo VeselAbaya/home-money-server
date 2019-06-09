@@ -123,7 +123,7 @@ app.post('/users/login', (req, res) => {
   User.findByCredentials(email, password).then(user => {
     user.generateAuthToken().then(token => {
       res.header({
-        'Access-Control-Expose-Headers': 'X-Auth',
+        'Access-Control-Allow-Headers': 'X-Auth',
         'X-Auth': token
       }).send(user)
     })
