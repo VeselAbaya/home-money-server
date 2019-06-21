@@ -19,7 +19,7 @@ app.use(bodyParser.json({extended: true}));
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.get('/', (req, res) => {
-  res.send('Welcome to my Todo API')
+  res.send('Welcome to my Home-money API')
 });
 
 // app.get('/todos', authenticate, (req, res) => {
@@ -102,7 +102,7 @@ app.get('/', (req, res) => {
 //   })
 // });
 
-app.post('/users', cors(),(req, res) => {
+app.post('/users', cors(), (req, res) => {
   const body = _.pick(req.body, ['email', 'password', 'name']);
   const user = new User(body);
 
@@ -121,7 +121,15 @@ app.get('/users/me', authenticate, (req, res) => {
   res.send(req.user)
 });
 
-app.post('/users/login', cors(),(req, res) => {
+app.get('/users/email-exists/:email', (req, res) => {
+  const email = req.params.email;
+  User.findOne({email})
+    .then(user => {
+      res.send(user ? true : false);
+    });
+});
+
+app.post('/users/login', cors(), (req, res) => {
   const {email, password} = _.pick(req.body, ['email', 'password']);
 
   User.findByCredentials(email, password).then(user => {

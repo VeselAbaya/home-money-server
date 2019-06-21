@@ -343,3 +343,23 @@ describe('DELETE /users/me/token', () => {
       })
   })
 });
+
+describe('GET /users/email-exists', () => {
+  it('should find user', done => {
+    request(app)
+      .get('/users/email-exists/Vandervise465@gmail.com')
+      .expect(200, (err, res) => {
+        expect(res.body).toBe(true);
+        done();
+      })
+  });
+
+  it('should\'t find user', done => {
+    request(app)
+      .get('/users/email-exists/notExisting@email.com')
+      .expect(200, (err, res) => {
+        expect(res.body).toBe(false);
+        done();
+      })
+  })
+});
