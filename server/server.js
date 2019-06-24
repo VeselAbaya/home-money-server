@@ -118,7 +118,11 @@ app.post('/users', cors(), (req, res) => {
 });
 
 app.get('/users/me', authenticate, (req, res) => {
-  res.send(req.user)
+  res.send({
+    _id: req.user._id,
+    email: req.user.email,
+    name: req.user.name
+  })
 });
 
 app.get('/users/email-exists/:email', (req, res) => {
@@ -140,7 +144,12 @@ app.post('/users/login', cors(), (req, res) => {
       }).send(user)
     })
   }).catch(err => {
-    res.status(400).send()
+    if (err === 'Wrong credentials') {
+      res.status(403).send();
+    }
+    else {
+      res.status(400).send();
+    }
   })
 });
 
@@ -153,7 +162,7 @@ app.delete('/users/me/token', authenticate, (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Todo server started up on port ${port}`)
+  console.log(`Home-money server started up on port ${port}`)
 });
 
 module.exports = app;

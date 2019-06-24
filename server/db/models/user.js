@@ -9,7 +9,7 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    minlength: 1,
+    minlength: 3,
     unique: true,
     validate: {
       validator: validator.isEmail,
@@ -23,7 +23,9 @@ const UserSchema = new mongoose.Schema({
   },
   name: {
     type: String,
-    required: true
+    required: true,
+    trim: true,
+    minlength: 1,
   },
   tokens: [
     {
@@ -88,7 +90,7 @@ UserSchema.statics.findByToken = function(token) {
 UserSchema.statics.findByCredentials = function(email, password) {
   return User.findOne({email}).then(user => {
     if (!user)
-      return Promise.reject();
+      return Promise.reject('Wrong credentials');
 
     return new Promise((resolve, reject) => {
       bcrypt.compare(password, user.password, (err, res) => {
@@ -99,7 +101,7 @@ UserSchema.statics.findByCredentials = function(email, password) {
       })
     })
   }).catch(() => {
-    return Promise.reject();
+    return Promise.reject('Wrong credentials');
   })
 };
 

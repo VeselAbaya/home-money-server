@@ -5,7 +5,7 @@
     "JWT_SECRET": "s89dfql34jlwhr1eph3p4hqp34htkwjfgn3948kjrn20q"
   },
   "development": {
-    "PORT": 3000,
+    "PORT": 3800,
     "MONGODB_URI": "mongodb://localhost:27017/HomeMoney",
     "JWT_SECRET": "sdklliej983u45ongh3478h283foq8743o834go3i4h5mndfmvsnlw34"
   }
