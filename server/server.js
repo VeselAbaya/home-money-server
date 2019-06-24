@@ -8,7 +8,7 @@ const cors = require('cors');
 const mongoose = require('./db/mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const User = require('./db/models/user');
-// const Todo = require('./db/models/todo');
+const Bill = require('./db/models/bill');
 const authenticate = require('./middleware/authenticate');
 
 const app = express();
@@ -22,14 +22,14 @@ app.get('/', (req, res) => {
   res.send('Welcome to my Home-money API')
 });
 
-// app.get('/todos', authenticate, (req, res) => {
-//   Todo.find({_creator: req.user._id}).then(todos => {
-//     res.send({todos})
-//   }).catch(err => {
-//     res.status(400).send(err)
-//   })
-// });
-//
+app.get('/bill', authenticate, (req, res) => {
+  Bill.findOne({_userId: req.user._id}).then(bill => {
+    res.send({bill})
+  }).catch(err => {
+    res.status(400).send(err)
+  })
+});
+
 // app.get('/todos/:id', authenticate, (req, res) => {
 //   const id = req.params.id;
 //   if (ObjectId.isValid(id)) {
@@ -45,20 +45,21 @@ app.get('/', (req, res) => {
 //     res.status(400).send()
 //   }
 // });
-//
-// app.post('/todos', authenticate, (req, res) => {
-//   const todo = new Todo({
-//     text: req.body.text,
-//     _creator: req.user._id
-//   });
-//
-//   todo.save().then(doc => {
-//     res.send(doc)
-//   }).catch(err => {
-//     res.status(400).send(err)
-//   })
-// });
-//
+
+app.post('/bill', authenticate, (req, res) => {
+  const bill = new Bill({
+    value: req.body.value,
+    currency: req.body.currency,
+    _userId: req.user._id
+  });
+
+  bill.save().then(doc => {
+    res.send(doc);
+  }).catch(err => {
+    res.status(400).send(err);
+  })
+});
+
 // app.delete('/todos/:id', authenticate, (req, res) => {
 //   const id = req.params.id;
 //   if (!ObjectId.isValid(id))
@@ -108,6 +109,10 @@ app.post('/users', cors(), (req, res) => {
 
   user.save().then(() => user.generateAuthToken())
     .then(token => {
+      // create bill for user
+      const bill = new Bill({_userId: user._id});
+      bill.save();
+
       res.header({
         'Access-Control-Expose-Headers': 'X-Auth',
         'X-Auth': token
