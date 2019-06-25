@@ -24,7 +24,7 @@ app.get('/', (req, res) => {
 
 app.get('/bill', authenticate, (req, res) => {
   Bill.findOne({_userId: req.user._id}).then(bill => {
-    res.send({bill})
+    res.send(bill)
   }).catch(err => {
     res.status(400).send(err)
   })
