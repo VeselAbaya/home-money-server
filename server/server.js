@@ -9,6 +9,10 @@ const mongoose = require('./db/mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const User = require('./db/models/user');
 const Bill = require('./db/models/bill');
+const Category = require('./db/models/record/category');
+const Record = require('./db/models/record/record');
+
+
 const authenticate = require('./middleware/authenticate');
 
 const app = express();
@@ -49,7 +53,6 @@ app.get('/bill', authenticate, (req, res) => {
 app.post('/bill', authenticate, (req, res) => {
   const bill = new Bill({
     value: req.body.value,
-    currency: req.body.currency,
     _userId: req.user._id
   });
 
@@ -102,6 +105,74 @@ app.post('/bill', authenticate, (req, res) => {
 //     res.status(400).send()
 //   })
 // });
+
+app.get('/categories', authenticate, (req, res) => {
+  Category.find({_userId: req.user._id}, (err, categories) => {
+    if (err) {
+      res.status(400).send(err)
+    }
+
+    res.send(categories);
+  })
+});
+
+app.post('/categories', authenticate, (req, res) => {
+  const body = _.pick(req.body, ['name', 'limit']);
+  console.log(body);
+  const category = new Category({
+    ...body,
+    _userId: req.user._id
+  });
+
+  category.save().then(doc => {
+    res.send(doc);
+  }).catch(err => {
+    res.status(400).send({err, message: 'error occurred during saving the category'});
+  })
+});
+
+app.post('/records', authenticate, (req, res) => {
+  const body = _.pick(req.body, ['value', 'type', 'categoryName']);
+  const userId = req.user._id;
+  Category.findOne({name: body.categoryName, _userId: userId}, (err, category) => {
+    if (err) {
+      res.status(400).send(err);
+    }
+
+    const record = new Record({
+      ...body,
+      _categoryId: category._id,
+      _userId: req.user._id
+    });
+
+    record.save().then(record => {
+      Bill.findOne({_userId: req.user._id}, (err, bill) => {
+        if (err) {
+          res.status(400).send(err);
+        }
+
+        bill.value += record.type === 'income' ? record.value : -record.value;
+        bill.save().then(() => {
+          res.send(record);
+        }).catch(err => {
+          res.status(400).send({err, message: 'error occurred during the update bill'});
+        })
+      });
+    }).catch(err => {
+      res.status(400).send({err, message: 'error occurred during the record saving'});
+    })
+  });
+});
+
+app.get('/records', authenticate, (req, res) => {
+  Record.find({_userId: req.user._id}, (err, records) => {
+    if (err) {
+      res.status(400).send(err);
+    }
+
+    res.send(records);
+  })
+});
 
 app.post('/users', cors(), (req, res) => {
   const body = _.pick(req.body, ['email', 'password', 'name']);

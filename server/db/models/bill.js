@@ -6,12 +6,6 @@ const Bill = mongoose.model('Bill', {
     default: 0,
     required: true
   },
-  currency: {
-    type: String,
-    enum: ['RUB', 'USD', 'EUR'],
-    required: true,
-    default: 'RUB'
-  },
   _userId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
