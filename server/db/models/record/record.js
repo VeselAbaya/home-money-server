@@ -12,6 +12,9 @@ const Record = mongoose.model('Record', {
     enum: ['income', 'consumption'],
     required: true
   },
+  comment: {
+    type: String
+  },
   _categoryId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true

@@ -132,7 +132,7 @@ app.post('/categories', authenticate, (req, res) => {
 });
 
 app.post('/records', authenticate, (req, res) => {
-  const body = _.pick(req.body, ['value', 'type', 'categoryName']);
+  const body = _.pick(req.body, ['value', 'type', 'comment', 'categoryName']);
   const userId = req.user._id;
   Category.findOne({name: body.categoryName, _userId: userId}, (err, category) => {
     if (err) {
