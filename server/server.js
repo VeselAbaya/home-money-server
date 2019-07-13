@@ -21,6 +21,7 @@ const port = process.env.PORT;
 
 app.use(bodyParser.json({extended: true}));
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cors());
 
 app.get('/', (req, res) => {
   res.send('Welcome to my Home-money API')
@@ -106,6 +107,24 @@ app.post('/bill', authenticate, (req, res) => {
 //   })
 // });
 
+app.patch('/categories/:id', authenticate, (req, res) => {
+  const id = req.params.id;
+  if (!ObjectId.isValid(id)) {
+    return res.status(400).send(`invalid id: ${id}`);
+  }
+
+  Category.findOneAndUpdate({_id: id}, {$set: {oneTimeLimit: req.body.oneTimeLimit}})
+    .then(category => {
+      if (!category) {
+        return res.status(404).send(`No category with id: ${id}`);
+      }
+
+      res.send(category);
+    }).catch(err => {
+      res.status(400).send({err, message: 'error occurred during updating category'});
+    });
+});
+
 app.get('/categories', authenticate, (req, res) => {
   Category.find({_userId: req.user._id}, (err, categories) => {
     if (err) {
@@ -117,8 +136,7 @@ app.get('/categories', authenticate, (req, res) => {
 });
 
 app.post('/categories', authenticate, (req, res) => {
-  const body = _.pick(req.body, ['name', 'limit']);
-  console.log(body);
+  const body = _.pick(req.body, ['name', 'oneTimeLimit', 'periodLimit']);
   const category = new Category({
     ...body,
     _userId: req.user._id
@@ -127,41 +145,49 @@ app.post('/categories', authenticate, (req, res) => {
   category.save().then(doc => {
     res.send(doc);
   }).catch(err => {
-    res.status(400).send({err, message: 'error occurred during saving the category'});
+    res.status(400).send({err, message: 'error occurred during the category saving'});
   })
 });
 
 app.post('/records', authenticate, (req, res) => {
-  const body = _.pick(req.body, ['value', 'type', 'comment', 'categoryName']);
-  const userId = req.user._id;
-  Category.findOne({name: body.categoryName, _userId: userId}, (err, category) => {
-    if (err) {
-      res.status(400).send(err);
-    }
+  const body = _.pick(req.body, ['value', 'type', 'comment', 'category']);
+  const record = new Record({
+    ...body,
+    _categoryId: body.category._id,
+    _userId: req.user._id
+  });
 
-    const record = new Record({
-      ...body,
-      _categoryId: category._id,
-      _userId: req.user._id
+  record.save().then(record => {
+    const absValue = record.type === 'income' ? record.value : -record.value;
+
+    // bill update
+    Bill.findOne({_userId: req.user._id}, (err, bill) => {
+      if (err) {
+        res.status(400).send(err);
+      }
+
+      bill.value += absValue;
+      bill.save().catch(err => {
+        res.status(400).send({err, message: 'error occurred during the bill update'});
+      })
     });
 
-    record.save().then(record => {
-      Bill.findOne({_userId: req.user._id}, (err, bill) => {
-        if (err) {
-          res.status(400).send(err);
-        }
+    // category update
+    Category.findOne({_id: record._categoryId}, (err, category) => {
+      if (err) {
+        res.status(400).send(err);
+      }
 
-        bill.value += record.type === 'income' ? record.value : -record.value;
-        bill.save().then(() => {
-          res.send(record);
-        }).catch(err => {
-          res.status(400).send({err, message: 'error occurred during the update bill'});
-        })
-      });
-    }).catch(err => {
-      res.status(400).send({err, message: 'error occurred during the record saving'});
-    })
-  });
+      category.currentCosts -= absValue; // if type === consumption then adds to costs
+      category.save().catch(err => {
+        res.status(400).send({err, message: 'error occurred during the category update'});
+      })
+    });
+
+    res.send(record);
+  }).catch(err => {
+    res.status(400).send({err, message: 'error occurred during the record saving'});
+  })
 });
 
 app.get('/records', authenticate, (req, res) => {
